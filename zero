@@ -580,7 +580,7 @@ title.BackgroundTransparency = 1
 title.TextColor3 = Color3.fromRGB(200,150,255)
 title.Font = Enum.Font.GothamBlack
 title.TextScaled = true
-title.Text = "Plants Vs Brainrots Script Loading.."
+title.Text = "Plants vs Brainrots Script Loading.."
 title.Parent = bg
 
 local sub = Instance.new("TextLabel")
